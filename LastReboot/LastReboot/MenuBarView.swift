@@ -68,6 +68,17 @@ struct MenuBarView: View {
 
             Divider()
 
+            // Reboot button
+            Button(action: {
+                confirmReboot()
+            }) {
+                Label("Reboot Now", systemImage: "arrow.clockwise")
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.orange)
+
+            Divider()
+
             // Quit button
             Button(action: {
                 NSApplication.shared.terminate(nil)
@@ -91,6 +102,27 @@ struct MenuBarView: View {
         } catch {
             print("Failed to \(enabled ? "enable" : "disable") launch at login: \(error)")
         }
+    }
+
+    private func confirmReboot() {
+        let alert = NSAlert()
+        alert.messageText = "Reboot Your Mac"
+        alert.informativeText = "Are you sure you want to reboot now? All unsaved work will be lost."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Reboot")
+        alert.addButton(withTitle: "Cancel")
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            executeReboot()
+        }
+    }
+
+    private func executeReboot() {
+        let task = Process()
+        task.launchPath = "/sbin/shutdown"
+        task.arguments = ["-r", "now"]
+        task.launch()
     }
 }
 
