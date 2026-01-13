@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-class UptimeManager: ObservableObject {
+final class UptimeManager: ObservableObject {
     @Published var uptime: TimeInterval = 0
     @Published var lastRebootDate: Date = Date()
 

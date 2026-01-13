@@ -119,10 +119,12 @@ struct MenuBarView: View {
     }
 
     private func executeReboot() {
-        let task = Process()
-        task.launchPath = "/sbin/shutdown"
-        task.arguments = ["-r", "now"]
-        task.launch()
+        let script = NSAppleScript(source: "do shell script \"shutdown -r now\" with administrator privileges")
+        var error: NSDictionary?
+        script?.executeAndReturnError(&error)
+        if let error = error {
+            print("Failed to execute reboot: \(error)")
+        }
     }
 }
 
