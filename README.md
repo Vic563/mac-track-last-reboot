@@ -69,6 +69,83 @@ LastReboot/
 
 The app uses the macOS `sysctl` API to query `kern.boottime`, which returns the exact timestamp when the system was last booted. The uptime is calculated as the difference between the current time and the boot time, updated every second.
 
+## Building for Release
+
+### Prerequisites
+
+1. **Apple Developer Account** with **Developer ID** certificate
+2. **Xcode** installed with command line tools
+
+### Getting a Developer ID Certificate
+
+To distribute the app outside the App Store (for direct download), you need a Developer ID certificate:
+
+1. Go to [Apple Developer Certificates](https://developer.apple.com/account/resources/certificates/add)
+2. Select **"Developer ID Application"**
+3. Follow the prompts to create and download the certificate
+4. Double-click the downloaded `.cer` file to install in Keychain
+
+### Building and Notarizing
+
+Use the automated build script to build, sign, notarize, and create a distributable DMG:
+
+```bash
+./scripts/build-and-notarize.sh
+```
+
+This script will:
+- Build a release version of the app
+- Sign it with your Developer ID certificate
+- Submit it to Apple for notarization
+- Staple the notarization ticket
+- Create a signed `.dmg` installer
+
+The output will be in `dist/LastReboot-latest.dmg`.
+
+### Manual Build
+
+If you prefer to build manually:
+
+```bash
+# Build release
+xcodebuild -project LastReboot/LastReboot.xcodeproj -scheme LastReboot -configuration Release build
+
+# Find the built app
+find ~/Library/Developer/Xcode/DerivedData -name "LastReboot.app" -type d
+
+# Sign (requires Developer ID)
+codesign --deep --force --sign "Developer ID Application: Your Name (TEAMID)" \
+    --entitlements LastReboot/LastReboot/LastReboot.entitlements \
+    --timestamp \
+    /path/to/LastReboot.app
+
+# Notarize
+xcrun notarytool submit /path/to/LastReboot.app --team-id TEAMID --wait
+
+# Staple
+xcrun stapler staple /path/to/LastReboot.app
+
+# Create DMG
+hdiutil create -volname LastReboot -srcfolder "/path/to/LastReboot.app" -ov -format UDZO LastReboot.dmg
+
+# Sign DMG
+codesign --sign "Developer ID Application: Your Name (TEAMID)" --timestamp LastReboot.dmg
+```
+
+### App Icons
+
+The app uses icons defined in `Assets.xcassets/AppIcon.appiconset`. For production:
+
+1. Design a 1024x1024 app icon
+2. Export at sizes: 16, 32, 128, 256, 512 (both 1x and 2x for macOS)
+3. Use PNG format with transparency
+4. Tools: Sketch, Figma, or [icon.kitchen](https://icon.kitchen)
+
+Generate placeholder icons:
+```bash
+./scripts/generate-icons.sh
+```
+
 ## License
 
 MIT License
